@@ -38,6 +38,28 @@ create_links() {
     done
 }
 
+setup_gnome() {
+    gsettings set org.gnome.software download-updates false
+    gsettings set org.gnome.software download-updates-notify false
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+    gsettings set org.gnome.desktop.sound event-sounds false
+
+    gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+    gsettings set org.gnome.desktop.session idle-delay 900
+
+    CUSTOM0=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/
+    gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings [\'"$CUSTOM0"\']
+    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"$CUSTOM0" name 'Toolbox Terminal'
+    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"$CUSTOM0" command 'gnome-terminal -- toolbox enter fedora-toolbox'
+    gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"$CUSTOM0" binding '<Super>Return'
+}
+
+create_toolbox() {
+    podman container exists fedora-toolbox || (podman build ./toolbox/. -t $USER/fedora-toolbox:latest && toolbox create -i $USER/fedora-toolbox);
+}
+
 add_flatpaks
 create_dirs
 create_links
+setup_gnome
+create_toolbox
