@@ -5,7 +5,8 @@ add_flatpaks() {
         org.mozilla.firefox\
         org.videolan.VLC\
         com.valvesoftware.Steam\
-        org.freedesktop.Platform.ffmpeg-full
+        org.freedesktop.Platform.ffmpeg-full\
+        org.kde.okular
     
     flatpak override --user --socket=wayland --env=MOZ_ENABLE_WAYLAND=1 org.mozilla.firefox
 }
@@ -47,19 +48,69 @@ setup_gnome() {
     gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
     gsettings set org.gnome.desktop.session idle-delay 900
 
+    # Keybindings
     CUSTOM0=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/
     gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings [\'"$CUSTOM0"\']
     gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"$CUSTOM0" name 'Toolbox Terminal'
     gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"$CUSTOM0" command 'gnome-terminal -- toolbox enter fedora-toolbox'
     gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"$CUSTOM0" binding '<Super>Return'
+
+    # Default Terminal Profile
+    defaultTerminalProfileId=$(gsettings get org.gnome.Terminal.ProfilesList default | sed "s/'//g")
+    defaultTerminalProfile="org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$defaultTerminalProfileId/"
+
+    gsettings set $defaultTerminalProfile audible-bell false
+    gsettings set $defaultTerminalProfile default-size-columns 120
+    gsettings set $defaultTerminalProfile default-size-rows 36
+    gsettings set $defaultTerminalProfile use-system-font false
+    gsettings set $defaultTerminalProfile font 'JetBrains Mono 12'
+    # Set gruvbox colors
+    gsettings set $defaultTerminalProfile use-theme-colors false
+    gsettings set $defaultTerminalProfile palette "['rgb(40,40,40)', 'rgb(204,36,29)', 'rgb(152,151,26)', 'rgb(215,153,33)', 'rgb(69,133,136)', 'rgb(177,98,134)', 'rgb(104,157,106)', 'rgb(168,153,132)', 'rgb(146,131,116)', 'rgb(251,73,52)', 'rgb(184,187,38)', 'rgb(250,189,47)', 'rgb(131,165,152)', 'rgb(211,134,155)', 'rgb(142,192,124)', 'rgb(235,219,178)']"
+    gsettings set $defaultTerminalProfile background-color 'rgb(29,32,33)'
+    gsettings set $defaultTerminalProfile foreground-color 'rgb(251,241,199)'
 }
 
 create_toolbox() {
     podman container exists fedora-toolbox || (podman build ./toolbox/. -t $USER/fedora-toolbox:latest && toolbox create -i $USER/fedora-toolbox);
 }
 
+get_jetbrains_mono() {
+    url=$(curl --silent "https://api.github.com/repos/JetBrains/JetBrainsMono/releases/latest" | jq --raw-output .assets[0].browser_download_url)
+    filename=$(echo $url | awk -F '/' '{print $NF}')
+    name=$(echo $filename | sed 's/.zip$//')
+    targetdir=~/.local/share/fonts/$name 
+    downloadfile=~/.local/share/fonts/$filename 
+
+    if [ ! -d $targetdir ]; then
+        # remove any old versions
+        rm -rf ~/.local/share/fonts/JetBrainsMono*
+        mkdir -p $targetdir
+        wget -o /dev/null -O $downloadfile $url
+        unzip -d $targetdir $downloadfile fonts/ttf/*
+        rm $downloadfile
+    fi
+}
+
+get_fonts() {
+    mkdir -p ~/.local/share/fonts
+
+    if [ ! -f ~/.local/share/fonts/SymbolsNerdFont-Regular.ttf ]; then
+        wget -o /dev/null -O ~/.local/share/fonts/SymbolsNerdFont-Regular.ttf https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf?raw=true
+    fi
+
+    if [ ! -f ~/.local/share/fonts/SymbolsNerdFontMono-Regular.ttf ]; then
+        wget -o /dev/null -O ~/.local/share/fonts/SymbolsNerdFontMono-Regular.ttf https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf?raw=true
+    fi
+
+    get_jetbrains_mono
+
+    fc-cache -f
+}
+
 add_flatpaks
 create_dirs
 create_links
+get_fonts
 setup_gnome
 create_toolbox
