@@ -6,7 +6,8 @@ add_flatpaks() {
         org.videolan.VLC\
         com.valvesoftware.Steam\
         org.freedesktop.Platform.ffmpeg-full\
-        org.kde.okular
+        org.kde.okular\
+        org.zealdocs.Zeal
     
     flatpak override --user --socket=wayland --env=MOZ_ENABLE_WAYLAND=1 org.mozilla.firefox
 }
