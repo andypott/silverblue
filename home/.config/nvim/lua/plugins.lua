@@ -11,8 +11,6 @@ require("lazy").setup({
 			{ "neovim/nvim-lspconfig" },
 			{ "williamboman/mason.nvim", build = ":MasonUpdate" },
 			{ "williamboman/mason-lspconfig.nvim" },
-			{ "jose-elias-alvarez/null-ls.nvim" },
-			{ "jay-babu/mason-null-ls.nvim" },
 			-- Autocompletion
 			{ "hrsh7th/nvim-cmp" },
 			{ "hrsh7th/cmp-nvim-lsp" },
@@ -22,6 +20,7 @@ require("lazy").setup({
 			{ "L3MON4D3/LuaSnip" },
 		},
 	},
+	{ "mhartington/formatter.nvim" },
 	{
 		"nvim-neorg/neorg",
 		opts = {

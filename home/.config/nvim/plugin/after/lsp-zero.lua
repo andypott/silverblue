@@ -5,25 +5,6 @@ local lsp = require("lsp-zero").preset({
 	},
 })
 
-lsp.format_on_save({
-	format_opts = {
-		async = false,
-		timeout_ms = 5000,
-	},
-	servers = {
-		["null-ls"] = {
-			"c",
-			"css",
-			"go",
-			"html",
-			"javascript",
-			"lua",
-			"rust",
-			"typescript",
-		},
-	},
-})
-
 lsp.on_attach(function(client, bufnr)
 	lsp.default_keymaps({ buffer = bufnr })
 	local opts = { buffer = true }
@@ -46,17 +27,6 @@ lsp.ensure_installed({
 
 require("lspconfig").lua_ls.setup(lsp.nvim_lua_ls())
 lsp.setup()
-
-require("mason-null-ls").setup({
-	ensure_installed = {
-		"clang-format",
-		"goimports",
-		"prettier",
-		"rustfmt",
-		"stylua",
-	},
-	handlers = {},
-})
 
 local cmp = require("cmp")
 cmp.setup({
